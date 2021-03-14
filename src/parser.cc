@@ -12,7 +12,6 @@ int main(void) {
     input.push_back(std::string("+"));
     input.push_back(std::string("a"));
     input.push_back(std::string(")"));
-    input.push_back(std::string(")"));
     input.push_back(std::string("BOS"));
 
 
@@ -87,26 +86,29 @@ void Parser::parse(std::vector<std::string> inputTokenized) {
     std::vector<std::string>::iterator token = inputTokenized.begin();
 
     while(stack.size() > 0) {
-        
-        if (token == inputTokenized.end())
-            std::cout << "Error At Position " << currentPos << ": " << *(--token) << std::endl;
+
         int term = lexer(*token);
         if (term == -1) {
-            std::cout << "Error At Position " << currentPos << ": " << *token << std::endl;
+            std::cout << "Error at position " << currentPos << ": " << *token << std::endl;
             exit(0);
         } 
         else if (terminals[term].first == stack.top()) {
-            // std::cout << "Matched symbols: " << terminals[term].first << std::endl;
-			token++;
+            //std::cout << "Matched symbols: " << terminals[term].first << std::endl;
+            currentPos += (*token).size();
+            token++;
 			stack.pop();
         }
         else {
             int symbol = symbolToIndex(stack.top());
+            if (symbol == -1) {
+                std::cout << "Error At Position " << currentPos << ": " << *(--token) << std::endl;
+                exit(0);
+            }
             int ruleNum = parseTable[symbol][term];
             std::cout << "Rule " << ruleNum << std::endl;
             std::vector<std::string> rule = rules[ruleNum-1];
             if (ruleNum == 0) {
-                std::cout << "Error At Position " << currentPos << ": " << *token << std::endl;
+                std::cout << "Error at position " << currentPos << ": " << *token << std::endl;
                 exit(0);
             }
             stack.pop();
