@@ -7,7 +7,7 @@
 
 Terminal* Grammar::symbolLexer(std::string input) {
 
-    std::vector<Terminal*>::iterator it = terminals.begin();
+    std::vector<Terminal*>::iterator it;
 
     for (it = terminals.begin(); it != terminals.end(); it++) {
         if ((*(*it)).lexer(input)) 
@@ -15,4 +15,13 @@ Terminal* Grammar::symbolLexer(std::string input) {
     }
 
     return NULL;
+}
+
+std::vector<Rule> Grammar::rulesFor(Variable V) {
+    std::vector<Rule>::iterator it;
+
+    for (it = rules.begin(); it != rules.begin(); it++) {
+        //TODO
+    }
+ 
 }

@@ -5,8 +5,6 @@
 
 Symbol::Symbol(int tag, int index, std::string id): tag(tag), index(index), identifier(id) {}
 
-Symbol::~Symbol() {}
-
 int Symbol::getTag() {return tag;}
 
 std::string Symbol::getId() {return identifier;}

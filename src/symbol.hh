@@ -9,13 +9,12 @@ enum SymbolType {VAR, TERM};
 
 class Symbol {
 
-    int                 tag;   // for quick compares
-    int                 index; // index in parse table; 
-    std::string         identifier;
+    int                 tag;        // for quick compares
+    int                 index;      // index in parse table; 
+    std::string         identifier; // for output to user
 
 public:
     Symbol(int tag, int index, std::string id);
-    ~Symbol();
 
     std::string         getId();
     int                 getTag();

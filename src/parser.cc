@@ -33,7 +33,7 @@ int main (void) {
     Parser p = Parser(&G);
 
     std::vector<std::string> input = 
-        std::vector<std::string>{std::string("("), std::string("a"),std::string("+"),std::string("a"),std::string(")"), std::string("BOS")};
+        std::vector<std::string>{std::string("("),std::string("("), std::string("a"),std::string("+"), std::string("a"),std::string(")"),std::string("+"), std::string("a"),std::string(")"), std::string("BOS")};
 
     p.parse(&input);
 }
@@ -70,13 +70,13 @@ void Parser::parse(std::vector<std::string>* inputTokenized) {
     while(pda.size() > 0) {
 
         // compare input with TOS
-        Terminal term = *(G->symbolLexer(*token));
+        Terminal* term = G->symbolLexer(*token);
         Symbol* top = pda.top();
-        if (term.getTag() == -3) {
-            std::cout << "(1) Error at position " << currentPos << ": " << *token << " Invalid Token. Expected: " << (*top).getId() << std::endl;
+        if (term == NULL) {
+            std::cout << "(1) Error at position " << currentPos << " :: Invalid Token (\"" << *token << "\") :: Expected: " << (*top).getId() << std::endl;
             exit(0);
         }
-        else if (term.getTag() == ((*top).getTag())) {
+        else if ((*term).getTag() == ((*top).getTag())) {
             // TOS matches input
             std::cout << "Matched symbols: " << (*top).getId() << std::endl;
             currentPos += (*token).size();
@@ -86,18 +86,19 @@ void Parser::parse(std::vector<std::string>* inputTokenized) {
         else {
             // TOS doesnt match, push symbols for rule(TOS) onto stack
             if ((*top).type() == SymbolType(TERM)) {
-                std::cout << "(2) Error At Position " << currentPos << ": " << *(token) << " Expected: " << (*top).getId() << std::endl;
+                std::cout << "(2) Error at position " << currentPos << ": \"" << *token << "\" :: Expected: " << (*top).getId() << std::endl;
                 exit(0);
             }
             // get rule from table for [variable][terminal]
-            int ruleNum = parseTable[(*top).getIndex()][term.getIndex()];
+            int ruleNum = parseTable[(*top).getIndex()][(*term).getIndex()];
             std::cout << "Rule " << ruleNum << std::endl;
             Rule rule = G->rules[ruleNum];
             if (ruleNum == -1) {
-                std::cout << "(3) Error at position " << currentPos << ": " << *token << " Expected: " << (*top).getId() << std::endl;
+                std::cout << "(3) Error at position " << currentPos << ": \"" << *token << "\" :: Expected: " << (*top).getId() << std::endl;
                 exit(0);
             }
             pda.pop();
+            // push each symbol for rule
             for (std::vector<Symbol*>::reverse_iterator it = rule.RHS.rbegin(); it != rule.RHS.rend(); it++) {
                 pda.push(*it);
             }

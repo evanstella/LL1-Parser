@@ -16,6 +16,7 @@ struct Grammar {
 
 
     Terminal*               symbolLexer(std::string string);
+    std::vector<Rule>       rulesFor(Variable V);
 
 };
 
