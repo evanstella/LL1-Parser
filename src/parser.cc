@@ -32,8 +32,8 @@ int main (void) {
 
     Parser p = Parser(&G);
 
-    std::vector<std::string> input = 
-        std::vector<std::string>{std::string("("),std::string("("), std::string("a"),std::string("+"), std::string("a"),std::string(")"),std::string("+"), std::string("a"),std::string(")"), std::string("BOS")};
+    std::vector<Terminal*> input = {&p1,&a,&pl,&a,&p2,G.bos};
+        
 
     p.parse(&input);
 }
@@ -56,13 +56,13 @@ Parser::Parser(Grammar* g): grammar(g) {
 }
 
 
-void Parser::parse(std::vector<std::string>* inputTokenized) {
+void Parser::parse(std::vector<Terminal*>* inputTokenized) {
     std::stack<Symbol*> pda = std::stack<Symbol*>();
     Grammar* G = grammar;
 
     // keep track of current position for error message
     int currentPos = 0;
-    std::vector<std::string>::iterator token = (*inputTokenized).begin();
+    std::vector<Terminal*>::iterator it = (*inputTokenized).begin();
 
     pda.push(G->bos);
     pda.push(G->startSymbol);
@@ -70,31 +70,27 @@ void Parser::parse(std::vector<std::string>* inputTokenized) {
     while(pda.size() > 0) {
 
         // compare input with TOS
-        Terminal* term = G->symbolLexer(*token);
+        Terminal* token = *it;
         Symbol* top = pda.top();
-        if (term == NULL) {
-            std::cout << "(1) Error at position " << currentPos << " :: Invalid Token (\"" << *token << "\") :: Expected: " << (*top).getId() << std::endl;
-            exit(0);
-        }
-        else if ((*term).getTag() == ((*top).getTag())) {
+        if (token->getTag() == (top->getTag())) {
             // TOS matches input
-            std::cout << "Matched symbols: " << (*top).getId() << std::endl;
-            currentPos += (*token).size();
-            token++;
+            std::cout << "Matched symbols: " << top->getId() << std::endl;
+            currentPos++;
+            it++;
             pda.pop();
         }
         else {
             // TOS doesnt match, push symbols for rule(TOS) onto stack
-            if ((*top).type() == SymbolType(TERM)) {
-                std::cout << "(2) Error at position " << currentPos << ": \"" << *token << "\" :: Expected: " << (*top).getId() << std::endl;
+            if (top->type() == SymbolType(TERM)) {
+                std::cout << "(2) Error at position " << currentPos << ": \"" << token->getId() << "\" :: Expected: " << top->getId() << std::endl;
                 exit(0);
             }
             // get rule from table for [variable][terminal]
-            int ruleNum = parseTable[(*top).getIndex()][(*term).getIndex()];
+            int ruleNum = parseTable[top->getIndex()][token->getIndex()];
             std::cout << "Rule " << ruleNum << std::endl;
             Rule rule = G->rules[ruleNum];
             if (ruleNum == -1) {
-                std::cout << "(3) Error at position " << currentPos << ": \"" << *token << "\" :: Expected: " << (*top).getId() << std::endl;
+                std::cout << "(3) Error at position " << currentPos << ": \"" << token->getId() << "\" :: Expected: " << top->getId() << std::endl;
                 exit(0);
             }
             pda.pop();
