@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <set>
 
 
 int main (void) {
@@ -101,4 +102,27 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
         }
     }
     std::cout << "Input Accepted" << std::endl;
+}
+
+
+std::set<Terminal*> Parser::first(Symbol* S) {
+
+    // If A is a terminal, FIRST(A) = {A}.
+    if (S->type() == SymbolType(TERM)) {
+        return std::set<Terminal*>{(Terminal*) S};
+    }
+
+    std::set<Terminal*> ret;
+    Variable* V = (Variable*) S;
+    std::vector<Rule> rulesV = grammar->rulesFor(V);
+    // If A -> eps, add eps to FIRST(A)
+    for (int i = 0; i < rulesV.size(); i++) {
+        if (rulesV[i].epsilonIn(grammar->epsilon)) {
+            ret.insert(grammar->epsilon);
+        }
+    }
+
+    for (int i = 0; i < ruleV.size(); i++)
+
+
 }
