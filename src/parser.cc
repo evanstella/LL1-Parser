@@ -25,9 +25,9 @@ int main (void) {
     G.variables = std::vector<Variable*>{&S,&F};
     G.startSymbol = &S;
     
-    Rule r1 = Rule(S, std::vector<Symbol*>{&F});
-    Rule r2 = Rule(S, std::vector<Symbol*>{&p1, &S, &pl, &F, &p2});
-    Rule r3 = Rule(S, std::vector<Symbol*>{&a});
+    Rule r1 = Rule(&S, std::vector<Symbol*>{&F});
+    Rule r2 = Rule(&S, std::vector<Symbol*>{&p1, &S, &pl, &F, &p2});
+    Rule r3 = Rule(&S, std::vector<Symbol*>{&a});
 
     G.rules = std::vector<Rule>{r1,r2,r3};
 
@@ -122,7 +122,9 @@ std::set<Terminal*> Parser::first(Symbol* S) {
         }
     }
 
-    for (int i = 0; i < ruleV.size(); i++)
-
-
+    for (int i = 0; i < rulesV.size(); i++){
+        for (int j = 0; j < rulesV[i].RHS.size(); j++) {
+            for (int k = 0; k < j; k++) {}
+        }
+    }
 }
