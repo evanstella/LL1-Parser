@@ -6,10 +6,13 @@
 
 struct Rule {
 
-    Variable                LHS;
+    Variable*               LHS;
     std::vector<Symbol*>    RHS;
 
-    Rule(Variable lhs, std::vector<Symbol*> rhs);
+    bool                    epsilonIn(Symbol* epsilon);
+
+    Rule(Variable* lhs, std::vector<Symbol*> rhs);
+
 
 };
 

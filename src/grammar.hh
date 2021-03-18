@@ -11,13 +11,10 @@ struct Grammar {
     std::vector<Variable*>  variables;
     std::vector<Rule>       rules;
     Variable*               startSymbol;
-    Terminal*               bos = new Terminal(-2, 0, std::string("BOS"), std::regex("BOS"));
+    Terminal*               bos = new Terminal(-2, 0, std::string("BOS"), std::regex("$"));
     Terminal*               epsilon = new Terminal(-1, -1, std::string("EPSILON"), std::regex("EPSILON"));
 
-
-    Terminal*               symbolLexer(std::string string);
-    std::vector<Rule>       rulesFor(Variable V);
-
+    std::vector<Rule>       rulesFor(Variable* V);
 };
 
 #endif
