@@ -16,6 +16,7 @@ class Parser {
 
 public:
     Parser(Grammar* g);
+    ~Parser();
 
     void                parse(std::vector<Terminal*>* inputTokenized);
     void                buildTable();

@@ -14,26 +14,35 @@ int main (void) {
 
     Grammar G = Grammar();
 
-    Variable S = Variable(0, 0, std::string("S"));
-    Variable F = Variable(1, 1, std::string("F"));
-    Terminal p1 = Terminal(2, 1, std::string("("), std::regex("\\("));
-    Terminal p2 = Terminal(3, 2, std::string(")"), std::regex("\\)"));
-    Terminal a = Terminal(4, 3, std::string("a"), std::regex("a"));
-    Terminal pl = Terminal(5, 4, std::string("+"), std::regex("\\+"));
+    Variable E = Variable(0, 0, std::string("E"));
+    Variable Ep = Variable(1, 1, std::string("E'"));
+    Variable T = Variable(2, 2, std::string("T"));
+    Variable Tp = Variable(3, 3, std::string("T'"));
+    Variable F = Variable(4, 4, std::string("F"));
+    Terminal p1 = Terminal(5, 4, std::string("("), std::regex("\\("));
+    Terminal p2 = Terminal(6, 5, std::string(")"), std::regex("\\)"));
+    Terminal pl = Terminal(7, 2, std::string("+"), std::regex("\\+"));
+    Terminal id = Terminal(8, 1, std::string("id"), std::regex("id"));
+    Terminal as = Terminal(9, 3, std::string("*"), std::regex("as"));
 
-    G.terminals = std::vector<Terminal*>{&p1,&p2,&a,&pl,G.bos};
-    G.variables = std::vector<Variable*>{&S,&F};
-    G.startSymbol = &S;
+    G.terminals = std::vector<Terminal*>{G.bos,&p1,&p2,&id,&as,&pl};
+    G.variables = std::vector<Variable*>{&E,&Ep,&T,&Tp,&F};
+    G.startSymbol = &E;
     
-    Rule r1 = Rule(&S, std::vector<Symbol*>{&F});
-    Rule r2 = Rule(&S, std::vector<Symbol*>{&p1, &S, &pl, &F, &p2});
-    Rule r3 = Rule(&F, std::vector<Symbol*>{&a});
+    Rule r1 = Rule(&E, std::vector<Symbol*>{&T,&Ep});
+    Rule r2 = Rule(&Ep, std::vector<Symbol*>{&pl,&T, &Ep});
+    Rule r3 = Rule(&Ep, std::vector<Symbol*>{G.epsilon});
+    Rule r4 = Rule(&T, std::vector<Symbol*>{&F,&Tp});
+    Rule r5 = Rule(&Tp, std::vector<Symbol*>{&as,&F,&Tp});
+    Rule r6 = Rule(&Tp, std::vector<Symbol*>{G.epsilon});
+    Rule r7 = Rule(&F, std::vector<Symbol*>{&p1,&E,&p2});
+    Rule r8 = Rule(&F, std::vector<Symbol*>{&id});
 
-    G.rules = std::vector<Rule>{r1,r2,r3};
+    G.rules = std::vector<Rule>{r1,r2,r3,r4,r5,r6,r7,r8};
 
     Parser p = Parser(&G);
 
-    std::vector<Terminal*> input = {&p1,&a,&pl,&a,&p2,G.bos};
+    //std::vector<Terminal*> input = {&p1,&a,&pl,&a,&p2,G.bos};
         
     p.buildTable();
 
@@ -52,9 +61,13 @@ Parser::Parser(Grammar* g): grammar(g) {
             parseTable[i][j] = -1;
         }
 
-    parseTable[0][1] = 1;
-    parseTable[0][3] = 0;
-    parseTable[1][3] = 2;
+}
+
+
+Parser::~Parser() {
+    for (unsigned int i = 0; i < grammar->variables.size(); i++)
+        delete[] parseTable[i];
+    delete[] parseTable;
 }
 
 
@@ -165,9 +178,14 @@ void Parser::buildTable() {
         }
     }
 
+    // print for debug
     for (unsigned int i = 0; i < grammar->variables.size(); i++) {
-        for (unsigned int j = 0; j < grammar->terminals.size(); j++)
-            std::cout << parseTable[i][j] << " ";
+        for (unsigned int j = 0; j < grammar->terminals.size(); j++) {
+            if (parseTable[i][j] != -1)
+                std::cout << parseTable[i][j] << " ";
+            else
+                std::cout << "- ";
+        }
         std::cout << std::endl;
     }
 }
