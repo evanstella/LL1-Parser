@@ -27,7 +27,7 @@ int main (void) {
     
     Rule r1 = Rule(&S, std::vector<Symbol*>{&F});
     Rule r2 = Rule(&S, std::vector<Symbol*>{&p1, &S, &pl, &F, &p2});
-    Rule r3 = Rule(&S, std::vector<Symbol*>{&a});
+    Rule r3 = Rule(&F, std::vector<Symbol*>{&a});
 
     G.rules = std::vector<Rule>{r1,r2,r3};
 
@@ -35,8 +35,9 @@ int main (void) {
 
     std::vector<Terminal*> input = {&p1,&a,&pl,&a,&p2,G.bos};
         
+    p.buildTable();
 
-    p.parse(&input);
+    //p.parse(&input);
 }
 
 
@@ -109,22 +110,64 @@ std::set<Terminal*> Parser::first(Symbol* S) {
 
     // If A is a terminal, FIRST(A) = {A}.
     if (S->type() == SymbolType(TERM)) {
+        std::cout << S->getId() << std::endl;
         return std::set<Terminal*>{(Terminal*) S};
     }
-
     std::set<Terminal*> ret;
     Variable* V = (Variable*) S;
     std::vector<Rule> rulesV = grammar->rulesFor(V);
     // If A -> eps, add eps to FIRST(A)
-    for (int i = 0; i < rulesV.size(); i++) {
+    for (unsigned int i = 0; i < rulesV.size(); i++) {
         if (rulesV[i].epsilonIn(grammar->epsilon)) {
             ret.insert(grammar->epsilon);
         }
     }
 
-    for (int i = 0; i < rulesV.size(); i++){
-        for (int j = 0; j < rulesV[i].RHS.size(); j++) {
-            for (int k = 0; k < j; k++) {}
+    for (unsigned int i = 0; i < rulesV.size(); i++){
+        for (unsigned int j = 0; j < rulesV[i].RHS.size(); j++) {
+            std::set<Terminal*> set;
+            bool containsEps = true;
+            for (unsigned int k = 0; k < j; k++) {
+                set = first(rulesV[i].RHS[k]);
+                if (set.find(grammar->epsilon) == set.end()) {
+                    containsEps = false;
+                    break;
+                }
+            }
+            // Y1Y2...Yj−1 ∗⇒ eps) and a ∈ FIRST(Yj), then add a to FIRST(A)
+            if (containsEps) {
+                //add elements of set to ret
+                set = first(rulesV[i].RHS[j]);
+                for (std::set<Terminal*>::iterator it = set.begin(); it != set.end(); it++) {
+                    ret.insert(*it);
+                }
+            }
         }
+    }
+
+    return ret;
+}
+
+
+void Parser::buildTable() {
+    //clear table
+    for (unsigned int i = 0; i < grammar->variables.size(); i++)
+        for (unsigned int j = 0; j < grammar->terminals.size(); j++)
+            parseTable[i][j] = -1;
+
+    for (unsigned int i = 0; i < grammar->rules.size(); i++) {
+        Symbol* alpha = grammar->rules[i].RHS[0];
+        Variable* A = grammar->rules[i].LHS;
+        auto set = first(alpha);
+        std::cout << "test" << std::endl;
+        for (std::set<Terminal*>::iterator it = set.begin(); it != set.end(); it++) {
+            parseTable[A->getIndex()][(*it)->getIndex()] = i;
+        }
+    }
+
+    for (unsigned int i = 0; i < grammar->variables.size(); i++) {
+        for (unsigned int j = 0; j < grammar->terminals.size(); j++)
+            std::cout << parseTable[i][j] << " ";
+        std::cout << std::endl;
     }
 }

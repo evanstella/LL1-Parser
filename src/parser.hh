@@ -18,6 +18,7 @@ public:
     Parser(Grammar* g);
 
     void                parse(std::vector<Terminal*>* inputTokenized);
+    void                buildTable();
 
 
 };
