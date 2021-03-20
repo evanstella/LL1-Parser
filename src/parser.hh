@@ -12,11 +12,10 @@ class Parser {
     Grammar*            grammar;
 
     std::set<Terminal*> first(Symbol* S);
-    std::set<Terminal*> follow();
+    std::set<Terminal*> follow(Symbol* S);
 
 public:
     Parser(Grammar* g);
-    ~Parser();
 
     void                parse(std::vector<Terminal*>* inputTokenized);
     void                buildTable();

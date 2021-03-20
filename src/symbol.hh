@@ -38,7 +38,7 @@ public:
 class Terminal: public Symbol {
 
     std::regex      pattern;
-
+    
 public:
     Terminal(int tag, int index, std::string id, std::regex pattern);
 

@@ -11,6 +11,7 @@ struct Rule {
 
     bool                    epsilonIn(Symbol* epsilon);
 
+    Rule() {};
     Rule(Variable* lhs, std::vector<Symbol*> rhs);
 
 
