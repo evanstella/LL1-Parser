@@ -1,0 +1,17 @@
+E
+| T Ep
+
+Ep
+| <\+> T Ep
+| EPSILON
+
+T
+| F Tp
+
+Tp
+| <\*> F Tp
+| EPSILON
+
+F
+| <\(> E <\)>
+| <[a-z]+>
