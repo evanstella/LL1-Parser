@@ -19,6 +19,8 @@ public:
 
     void                parse(std::vector<Terminal*>* inputTokenized);
     void                buildTable();
+    void                serialize(const char* filename);
+    void                deserialize(const char* filename);
 
 
 };

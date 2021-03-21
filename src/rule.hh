@@ -14,7 +14,6 @@ struct Rule {
     Rule() {};
     Rule(Variable* lhs, std::vector<Symbol*> rhs);
 
-
 };
 
 #endif 

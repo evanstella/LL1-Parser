@@ -35,6 +35,7 @@ std::vector<Rule> Grammar::rulesHave(Symbol* S) {
 }
 
 
+// read grammar from a file
 void Grammar::readGrammar(const char* filename) {
 
     int counter = 0;
@@ -143,4 +144,19 @@ void Grammar::printRules() {
     }
     std::cout << std::endl;
 
+}
+
+
+Symbol* Grammar::getSymbol(int tag) {
+    if (tag == -1)
+        return epsilon;
+    for (int i = 0; i < terminals.size(); i++) {
+        if (terminals[i]->getTag() == tag)
+            return (Symbol*) terminals[i];
+    }
+    for (int i = 0; i < variables.size(); i++) {
+        if (variables[i]->getTag() == tag)
+            return (Symbol*) variables[i];
+    }
+    return NULL;
 }

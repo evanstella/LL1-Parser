@@ -18,6 +18,7 @@ struct Grammar {
     std::vector<Rule>       rulesHave(Symbol* S);   // A -> ...S...
     void                    readGrammar(const char* filename);
     void                    printRules();
+    Symbol*                 getSymbol(int tag);
 };
 
 #endif

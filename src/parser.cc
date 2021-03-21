@@ -8,13 +8,13 @@
 #include <string>
 #include <regex>
 #include <set>
+#include <fstream>
 
 
 int main (void) {
 
     Grammar G = Grammar();
-    G.readGrammar("tests/example1.txt");
-    G.printRules();
+    //G.readGrammar("tests/example1.txt");
 
     // Variable E = Variable(0, 0, std::string("E"));
     // Variable Ep = Variable(1, 1, std::string("E'"));
@@ -43,10 +43,14 @@ int main (void) {
     // G.rules = std::vector<Rule>{r1,r2,r3,r4,r5,r6,r7,r8};
 
     Parser p = Parser(&G);
+    
+    G.printRules();
 
     // std::vector<Terminal*> input = {&id,&as,&pl,&id,G.bos};
         
-    p.buildTable();
+    //p.buildTable();
+
+    p.deserialize("tmp.grammar");
 
     // p.parse(&input);
 }
@@ -60,7 +64,7 @@ Parser::Parser(Grammar* g): grammar(g) {
 
     for (unsigned int i = 0; i < g->variables.size(); i++)
         for (unsigned int j = 0; j < g->terminals.size(); j++) {
-            parseTable[i][j] = -1;
+            parseTable[i][j] = -1;  
         }
 }
 
@@ -106,7 +110,7 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
             if (!rule.epsilonIn(grammar->epsilon)) {
                 // push each symbol for rule
                 for (std::vector<Symbol*>::reverse_iterator it = rule.RHS.rbegin(); it != rule.RHS.rend(); it++) {
-                pda.push(*it);
+                    pda.push(*it);
                 }
             }
         }
@@ -256,4 +260,175 @@ void Parser::buildTable() {
         std::cout << std::endl;
 
     }
+}
+
+
+void Parser::serialize(const char* filename) {
+
+    std::ofstream file;
+    file.open(filename, std::fstream::binary | std::fstream::out);
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening parser file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // serialize parseTable
+    int tmp = grammar->variables.size();
+    file.write((char*) &tmp, sizeof(int));
+    tmp = grammar->terminals.size()-1;
+    file.write((char*) &tmp, sizeof(int));
+    tmp = grammar->rules.size();
+    file.write((char*) &tmp, sizeof(int));
+    
+    for (int i = 0; i < grammar->variables.size(); i++)
+        for (int j = 0; j < grammar->terminals.size(); j++) {
+            std::cout << parseTable[i][j] << std::endl;
+            file.write((char*) &parseTable[i][j], sizeof(int));
+        }
+
+    // serialize terminals
+    for (int i = 0; i < grammar->terminals.size(); i++) {
+        Terminal* t = grammar->terminals[i];
+        if (t->getTag() != grammar->bos->getTag()) {
+            int tag = t->getTag();
+            int index = t->getIndex();
+            int size = t->getId().size();
+            char s[size+1];
+            strcpy(s, t->getId().c_str());
+            file.write((char*) &tag, sizeof(int));
+            file.write((char*) &index, sizeof(int));
+            file.write((char*) &size, sizeof(int));
+            file.write(s, size+1);
+        }
+    }
+
+    // serialize variables
+    for (int i = 0; i < grammar->variables.size(); i++) {
+        Variable* v = grammar->variables[i];
+        int tag = v->getTag();
+        int index = v->getIndex();
+        int size = v->getId().size();
+        char s[size+1];
+        strcpy(s, v->getId().c_str());
+        file.write((char*) &tag, sizeof(int));
+        file.write((char*) &index, sizeof(int));
+        file.write((char*) &size, sizeof(int));
+        file.write(s, size+1);
+    }
+
+    // serialize rules
+    for (int i = 0; i < grammar->rules.size(); i++) {
+        Rule r = grammar->rules[i];
+        int lhs = r.LHS->getTag();
+        int size = r.RHS.size();
+        file.write((char*) &lhs, sizeof(int));
+        file.write((char*) &size, sizeof(int));
+        for (int j = 0; j < r.RHS.size(); j++) {
+            int tag = r.RHS[j]->getTag();
+            file.write((char*) &tag, sizeof(int));
+        }
+    }
+
+    // serialize remaining grammar parts
+    int tag = grammar->startSymbol->getTag();
+    file.write((char*) &tag, sizeof(int));
+
+    file.close();
+}
+
+
+void Parser::deserialize(const char* filename) {
+
+    std::ifstream file;
+    file.open(filename, std::fstream::binary | std::fstream::in);
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening parser file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (grammar == NULL) {
+        std::cerr << "No grammar to initialize" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    int numTerms, numVars, numRules;
+
+    file.read((char*) &numTerms, sizeof(int));
+    file.read((char*) &numVars, sizeof(int));
+    file.read((char*) &numRules, sizeof(int));
+
+    parseTable = new int*[numVars];
+    for (unsigned int i = 0; i < numVars; i++)
+        parseTable[i] = new int[numTerms+1];
+
+    // deserialize parse table
+    for (int i = 0; i < numVars; i++)
+        for (int j = 0; j < numTerms+1; j++) {
+            file.read((char*) &parseTable[i][j], sizeof(int));
+            std::cout << parseTable[i][j] << std::endl;
+        }
+
+    // deserialize terminals
+    for (int i = 0; i < numTerms; i++) {
+        int tag, index, size;
+        std::string id;
+        file.read((char*) &tag, sizeof(int));
+        file.read((char*) &index, sizeof(int));
+        file.read((char*) &size, sizeof(int));
+        char tmp[size+1];
+        file.read(tmp, size+1);
+        id.assign(tmp, size);
+        grammar->terminals.push_back(new Terminal(tag, index, id, std::regex(id)));
+    }
+
+    // deserialize variables
+    for (int i = 0; i < numVars; i++) {
+        int tag, index, size;
+        std::string id;
+        file.read((char*) &tag, sizeof(int));
+        file.read((char*) &index, sizeof(int));
+        file.read((char*) &size, sizeof(int));
+        char tmp[size+1];
+        file.read(tmp, size+1);
+        id.assign(tmp, size+1);
+        grammar->variables.push_back(new Variable(tag, index, id));
+    }
+
+    // deserialize rules
+    for (int i = 0; i < numRules; i++) {
+        Rule r;
+        int tag, size;
+        file.read((char*) &tag, sizeof(int));
+        r.LHS = (Variable*) grammar->getSymbol(tag);
+        if (r.LHS == NULL) {
+            std::cerr << "Error reading parser file" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        file.read((char*) &size, sizeof(int));
+        for (int j = 0; j < size; j++) {
+            file.read((char*) &tag, sizeof(int));
+            Symbol* s = grammar->getSymbol(tag);
+            if (s == NULL) {
+                std::cerr << "Error reading parser file" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            r.RHS.push_back(s);
+        }
+        grammar->rules.push_back(r);
+    }
+
+    int tag;
+    file.read((char*) &tag, sizeof(int));
+    Variable* s = (Variable*) grammar->getSymbol(tag);
+    if (s == NULL) {
+        std::cerr << "Error reading parser file" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    grammar->startSymbol = s;
+    grammar->terminals.push_back(grammar->bos);
+
+    file.close();
+
 }
