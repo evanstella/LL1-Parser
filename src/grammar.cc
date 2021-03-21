@@ -160,3 +160,13 @@ Symbol* Grammar::getSymbol(int tag) {
     }
     return NULL;
 }
+
+
+Terminal* Grammar::matchTerminal(std::string s) {
+    for (Terminal* t: terminals) {
+        if (t->lexer(s)) 
+            return t;
+    }
+
+    return NULL;
+}

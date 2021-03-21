@@ -2,6 +2,7 @@
 #include "grammar.hh"
 #include "symbol.hh"
 #include "rule.hh"
+#include "lexer.hh"
 #include <stack>
 #include <iostream>
 #include <vector>
@@ -11,62 +12,7 @@
 #include <fstream>
 
 
-int main (void) {
-
-    Grammar G = Grammar();
-    //G.readGrammar("tests/example1.txt");
-
-    // Variable E = Variable(0, 0, std::string("E"));
-    // Variable Ep = Variable(1, 1, std::string("E'"));
-    // Variable T = Variable(2, 2, std::string("T"));
-    // Variable Tp = Variable(3, 3, std::string("T'"));
-    // Variable F = Variable(4, 4, std::string("F"));
-    // Terminal p1 = Terminal(5, 4, std::string("("), std::regex("\\("));
-    // Terminal p2 = Terminal(6, 5, std::string(")"), std::regex("\\)"));
-    // Terminal pl = Terminal(7, 2, std::string("+"), std::regex("\\+"));
-    // Terminal id = Terminal(8, 1, std::string("id"), std::regex("id"));
-    // Terminal as = Terminal(9, 3, std::string("*"), std::regex("as"));
-
-    // G.terminals = std::vector<Terminal*>{G.bos,&p1,&p2,&id,&as,&pl};
-    // G.variables = std::vector<Variable*>{&E,&Ep,&T,&Tp,&F};
-    // G.startSymbol = &E;
-    
-    // Rule r1 = Rule(&E, std::vector<Symbol*>{&T,&Ep});
-    // Rule r2 = Rule(&Ep, std::vector<Symbol*>{&pl,&T, &Ep});
-    // Rule r3 = Rule(&Ep, std::vector<Symbol*>{G.epsilon});
-    // Rule r4 = Rule(&T, std::vector<Symbol*>{&F,&Tp});
-    // Rule r5 = Rule(&Tp, std::vector<Symbol*>{&as,&F,&Tp});
-    // Rule r6 = Rule(&Tp, std::vector<Symbol*>{G.epsilon});
-    // Rule r7 = Rule(&F, std::vector<Symbol*>{&p1,&E,&p2});
-    // Rule r8 = Rule(&F, std::vector<Symbol*>{&id});
-
-    // G.rules = std::vector<Rule>{r1,r2,r3,r4,r5,r6,r7,r8};
-
-    Parser p = Parser(&G);
-    
-    G.printRules();
-
-    // std::vector<Terminal*> input = {&id,&as,&pl,&id,G.bos};
-        
-    //p.buildTable();
-
-    p.deserialize("tmp.grammar");
-
-    // p.parse(&input);
-}
-
-
-Parser::Parser(Grammar* g): grammar(g) {
-
-    parseTable = new int*[g->variables.size()];
-    for (unsigned int i = 0; i < g->variables.size(); i++)
-        parseTable[i] = new int[g->terminals.size()];
-
-    for (unsigned int i = 0; i < g->variables.size(); i++)
-        for (unsigned int j = 0; j < g->terminals.size(); j++) {
-            parseTable[i][j] = -1;  
-        }
-}
+Parser::Parser(Grammar* g, bool verbose): grammar(g), verbose(verbose) {}
 
 
 void Parser::parse(std::vector<Terminal*>* inputTokenized) {
@@ -80,6 +26,9 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
     pda.push(G->bos);
     pda.push(G->startSymbol);
 
+    if (verbose)
+        std::cout << "DFA:" << std::endl;
+
     while(pda.size() > 0) {
 
         // compare input with TOS
@@ -87,7 +36,8 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
         Symbol* top = pda.top();
         if (token->getTag() == (top->getTag())) {
             // TOS matches input
-            std::cout << "Matched symbols: " << top->getId() << std::endl;
+            if (verbose)
+                std::cout << "Matched symbols: " << top->getId() << std::endl;
             currentPos++;
             it++;
             pda.pop();
@@ -95,14 +45,17 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
         else {
             // TOS doesnt match, push symbols for rule(TOS) onto stack
             if (top->type() == SymbolType(TERM)) {
-                std::cout << "(2) Error at position " << currentPos << ": "<< token->getId() << std::endl;
+                std::cout << "Error at position " << currentPos << std::endl;
+                std::cout << "\nINPUT REJECTED" << std::endl;
                 exit(0);
             }
             // get rule from table for [variable][terminal]
             int ruleNum = parseTable[top->getIndex()][token->getIndex()];
-            std::cout << "Rule " << ruleNum << std::endl;
+            if (verbose)
+                std::cout << "rule " << ruleNum << std::endl;
             if (ruleNum == -1) {
-                std::cout << "(3) Error at position " << currentPos << ": "<< token->getId() << std::endl;
+                std::cout << "Error at position " << currentPos << std::endl;
+                std::cout << "\nINPUT REJECTED" << std::endl;
                 exit(0);
             }
             Rule rule = G->rules[ruleNum];
@@ -115,7 +68,10 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
             }
         }
     }
-    std::cout << "Input Accepted" << std::endl;
+    if (verbose)
+        std::cout << std::endl;
+
+    std::cout << "INPUT ACCEPTED" << std::endl;
 }
 
 
@@ -212,6 +168,10 @@ std::set<Terminal*> Parser::follow(Symbol* S) {
 
 void Parser::buildTable() {
     //clear table
+    parseTable = new int*[grammar->variables.size()];
+    for (unsigned int i = 0; i < grammar->variables.size(); i++)
+        parseTable[i] = new int[grammar->terminals.size()];
+
     for (unsigned int i = 0; i < grammar->variables.size(); i++)
         for (unsigned int j = 0; j < grammar->terminals.size(); j++)
             parseTable[i][j] = -1;
@@ -248,18 +208,6 @@ void Parser::buildTable() {
             }
         }
     }
-
-    // print for debug
-    for (unsigned int i = 0; i < grammar->variables.size(); i++) {
-        for (unsigned int j = 0; j < grammar->terminals.size(); j++) {
-            if (parseTable[i][j] != -1)
-                std::cout << parseTable[i][j] << " ";
-            else
-                std::cout << "- ";
-        }
-        std::cout << std::endl;
-
-    }
 }
 
 
@@ -283,7 +231,6 @@ void Parser::serialize(const char* filename) {
     
     for (int i = 0; i < grammar->variables.size(); i++)
         for (int j = 0; j < grammar->terminals.size(); j++) {
-            std::cout << parseTable[i][j] << std::endl;
             file.write((char*) &parseTable[i][j], sizeof(int));
         }
 
@@ -356,7 +303,7 @@ void Parser::deserialize(const char* filename) {
     int numTerms, numVars, numRules;
 
     file.read((char*) &numTerms, sizeof(int));
-    file.read((char*) &numVars, sizeof(int));
+    file.read((char*) &numVars,  sizeof(int));
     file.read((char*) &numRules, sizeof(int));
 
     parseTable = new int*[numVars];
@@ -367,7 +314,6 @@ void Parser::deserialize(const char* filename) {
     for (int i = 0; i < numVars; i++)
         for (int j = 0; j < numTerms+1; j++) {
             file.read((char*) &parseTable[i][j], sizeof(int));
-            std::cout << parseTable[i][j] << std::endl;
         }
 
     // deserialize terminals
@@ -380,7 +326,7 @@ void Parser::deserialize(const char* filename) {
         char tmp[size+1];
         file.read(tmp, size+1);
         id.assign(tmp, size);
-        grammar->terminals.push_back(new Terminal(tag, index, id, std::regex(id)));
+        grammar->terminals.push_back(new Terminal(tag, index, id, std::regex(id.substr(1,id.length()-2))));
     }
 
     // deserialize variables

@@ -19,6 +19,7 @@ struct Grammar {
     void                    readGrammar(const char* filename);
     void                    printRules();
     Symbol*                 getSymbol(int tag);
+    Terminal*               matchTerminal(std::string s);
 };
 
 #endif
