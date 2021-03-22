@@ -192,7 +192,7 @@ void Parser::buildTable() {
                 parseTable[A->getIndex()][(*t)->getIndex()] = i;
         }
 
-        // if eps in FIRST(a), add A -> a... to M[A, b] for each terminal b ∈ FOLLOW(A)
+        // if eps in FIRST(a), add A -> a... to M[A, b] for each terminal b in FOLLOW(A)
         if (containsEps) {
             set = follow(A);
             for (std::set<Terminal*>::iterator b = set.begin(); b != set.end(); b++) {
@@ -222,20 +222,20 @@ void Parser::serialize(const char* filename) {
     }
 
     // serialize parseTable
-    int tmp = grammar->variables.size();
-    file.write((char*) &tmp, sizeof(int));
+    unsigned int tmp = grammar->variables.size();
+    file.write((char*) &tmp, sizeof(unsigned int));
     tmp = grammar->terminals.size()-1;
-    file.write((char*) &tmp, sizeof(int));
+    file.write((char*) &tmp, sizeof(unsigned int));
     tmp = grammar->rules.size();
-    file.write((char*) &tmp, sizeof(int));
+    file.write((char*) &tmp, sizeof(unsigned int));
     
-    for (int i = 0; i < grammar->variables.size(); i++)
-        for (int j = 0; j < grammar->terminals.size(); j++) {
+    for (unsigned int i = 0; i < grammar->variables.size(); i++)
+        for (unsigned int j = 0; j < grammar->terminals.size(); j++) {
             file.write((char*) &parseTable[i][j], sizeof(int));
         }
 
     // serialize terminals
-    for (int i = 0; i < grammar->terminals.size(); i++) {
+    for (unsigned int i = 0; i < grammar->terminals.size(); i++) {
         Terminal* t = grammar->terminals[i];
         if (t->getTag() != grammar->bos->getTag()) {
             int tag = t->getTag();
@@ -251,7 +251,7 @@ void Parser::serialize(const char* filename) {
     }
 
     // serialize variables
-    for (int i = 0; i < grammar->variables.size(); i++) {
+    for (unsigned int i = 0; i < grammar->variables.size(); i++) {
         Variable* v = grammar->variables[i];
         int tag = v->getTag();
         int index = v->getIndex();
@@ -265,13 +265,13 @@ void Parser::serialize(const char* filename) {
     }
 
     // serialize rules
-    for (int i = 0; i < grammar->rules.size(); i++) {
+    for (unsigned int i = 0; i < grammar->rules.size(); i++) {
         Rule r = grammar->rules[i];
         int lhs = r.LHS->getTag();
         int size = r.RHS.size();
         file.write((char*) &lhs, sizeof(int));
         file.write((char*) &size, sizeof(int));
-        for (int j = 0; j < r.RHS.size(); j++) {
+        for (unsigned int j = 0; j < r.RHS.size(); j++) {
             int tag = r.RHS[j]->getTag();
             file.write((char*) &tag, sizeof(int));
         }
@@ -300,24 +300,24 @@ void Parser::deserialize(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    int numTerms, numVars, numRules;
+    unsigned int numTerms, numVars, numRules;
 
-    file.read((char*) &numTerms, sizeof(int));
-    file.read((char*) &numVars,  sizeof(int));
-    file.read((char*) &numRules, sizeof(int));
+    file.read((char*) &numTerms, sizeof(unsigned int));
+    file.read((char*) &numVars,  sizeof(unsigned int));
+    file.read((char*) &numRules, sizeof(unsigned int));
 
     parseTable = new int*[numVars];
     for (unsigned int i = 0; i < numVars; i++)
         parseTable[i] = new int[numTerms+1];
 
     // deserialize parse table
-    for (int i = 0; i < numVars; i++)
-        for (int j = 0; j < numTerms+1; j++) {
+    for (unsigned int i = 0; i < numVars; i++)
+        for (unsigned int j = 0; j < numTerms+1; j++) {
             file.read((char*) &parseTable[i][j], sizeof(int));
         }
 
     // deserialize terminals
-    for (int i = 0; i < numTerms; i++) {
+    for (unsigned int i = 0; i < numTerms; i++) {
         int tag, index, size;
         std::string id;
         file.read((char*) &tag, sizeof(int));
@@ -330,7 +330,7 @@ void Parser::deserialize(const char* filename) {
     }
 
     // deserialize variables
-    for (int i = 0; i < numVars; i++) {
+    for (unsigned int i = 0; i < numVars; i++) {
         int tag, index, size;
         std::string id;
         file.read((char*) &tag, sizeof(int));
@@ -343,7 +343,7 @@ void Parser::deserialize(const char* filename) {
     }
 
     // deserialize rules
-    for (int i = 0; i < numRules; i++) {
+    for (unsigned int i = 0; i < numRules; i++) {
         Rule r;
         int tag, size;
         file.read((char*) &tag, sizeof(int));

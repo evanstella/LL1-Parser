@@ -1,13 +1,9 @@
 #include "main.hh"
 #include "parser.hh"
 #include "grammar.hh"
-#include "symbol.hh"
-#include "rule.hh"
 #include "lexer.hh"
 #include <iostream>
-#include <vector>
 #include <string>
-#include <regex>
 #include <fstream>
 
 

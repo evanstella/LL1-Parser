@@ -68,7 +68,7 @@ void Grammar::readGrammar(const char* filename) {
             while (ss >> token) {
                 if (token.at(0) == '<') {
                     bool found = false;
-                    for (int i = 0; i < terminals.size(); i++) {
+                    for (unsigned int i = 0; i < terminals.size(); i++) {
                         if (terminals[i]->getId() == token) {
                             currentRule.RHS.push_back(terminals[i]);
                             found = true;
@@ -87,7 +87,7 @@ void Grammar::readGrammar(const char* filename) {
                         currentRule.RHS.push_back(epsilon);
                     } 
                     else {
-                        for (int i = 0; i < variables.size(); i++) {
+                        for (unsigned int i = 0; i < variables.size(); i++) {
                             if (variables[i]->getId() == token) {
                                 currentRule.RHS.push_back(variables[i]);
                                 found = true;
@@ -108,7 +108,7 @@ void Grammar::readGrammar(const char* filename) {
                 rules.push_back(currentRule);
             currentRule = Rule();
             bool found = false;
-            for (int i = 0; i < variables.size(); i++) {
+            for (unsigned int i = 0; i < variables.size(); i++) {
                 if (variables[i]->getId() == token) {
                     currentRule.LHS = variables[i];
                     found = true;
@@ -150,11 +150,11 @@ void Grammar::printRules() {
 Symbol* Grammar::getSymbol(int tag) {
     if (tag == -1)
         return epsilon;
-    for (int i = 0; i < terminals.size(); i++) {
+    for (unsigned int i = 0; i < terminals.size(); i++) {
         if (terminals[i]->getTag() == tag)
             return (Symbol*) terminals[i];
     }
-    for (int i = 0; i < variables.size(); i++) {
+    for (unsigned int i = 0; i < variables.size(); i++) {
         if (variables[i]->getTag() == tag)
             return (Symbol*) variables[i];
     }
