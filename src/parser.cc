@@ -27,7 +27,7 @@ void Parser::parse(std::vector<Terminal*>* inputTokenized) {
     pda.push(G->startSymbol);
 
     if (verbose)
-        std::cout << "DFA:" << std::endl;
+        std::cout << "PDA:" << std::endl;
 
     while(pda.size() > 0) {
 
@@ -176,7 +176,7 @@ void Parser::buildTable() {
         for (unsigned int j = 0; j < grammar->terminals.size(); j++)
             parseTable[i][j] = -1;
 
-
+    // for each rule...
     for (unsigned int i = 0; i < grammar->rules.size(); i++) {
         bool containsEps = false;
         bool containsBOS = false;

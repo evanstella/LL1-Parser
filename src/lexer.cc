@@ -36,6 +36,7 @@ std::vector<Terminal*>* Lexer::tokenize(const char* inputRaw) {
 
         // if matches, continue adding to token
         // otherwise, validate token and add to tokens
+        // if invalid token: error
         if (matches != 0) {
             token += current;
             current = inputRaw[i++];
@@ -61,7 +62,7 @@ std::vector<Terminal*>* Lexer::tokenize(const char* inputRaw) {
             Terminal* t = G->matchTerminal(token);
             if (t) {
                 if (verbose)
-                    std::cout << token << "\t" << t->getId() << std::endl;
+                    std::cout << token << ":\t" << t->getId() << std::endl;
                 tokens->push_back(t);
             }
             else if (!whitespace.lexer(token)) {

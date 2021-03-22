@@ -126,6 +126,15 @@ int main (int argc, char** argv) {
             printHelp();
             return 0;
         }
+        std::ifstream in(ifile);
+        if (in.fail()) {
+            std::cerr << "Error: failed to open " << ifile << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+        Lexer L(&G, optv);
+        auto tokens = L.tokenize(contents.c_str());
+        P.parse(tokens);
     }
     // parse string
     if (opts) {
@@ -138,7 +147,6 @@ int main (int argc, char** argv) {
         auto tokens = L.tokenize(string);
         P.parse(tokens);
     }
-
 }
 
 
