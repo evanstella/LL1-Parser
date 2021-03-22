@@ -21,13 +21,13 @@ This project implements the parse table generation (algorithms 3,4,5) discussed 
 
 **Program flow**
 
-The program first either reads a grammar from a file like the ones specified above and generates a parser, or loads an already generated parser from disk. While the example grammars are simple and their parsers can be generated quickly, I included the option to save/load a generated parser because the parser generation can be slower for much more complicated grammars. The `-g` switch will generate a parser from a given file with a grammar, and the `-p` switch will load the parser in a given file.
+The program first either reads a grammar from a file like the ones specified above and generates a parser, or loads an already generated parser from disk. While the example grammars are simple and their parsers can be generated quickly, I included the option to save/load a generated parser because the parser generation can be slower for much more complicated grammars. The `-g` switch will generate a parser from a given file with a grammar, and the `-p` and `-o` switchs will load and save the parser respectively.
 
-If input is given to parse, the lexer will tokenize the input for parsing, and the parser will parse the tokens. The `-i` switch specifies a given file to parse and `-s` will parse a given string. The lexer tokenizes the input based on the regular expressions specified in the grammar. The parser will then parse the input using a DPDA.
+If input is given to parse, the lexer will tokenize the input for parsing, and the parser will parse the tokens. The `-i` switch specifies a given file to parse and `-s` will specifies a string to parser. The lexer tokenizes the input based on the regular expressions specified in the grammar. The parser will then parse the input using a DPDA.
 
 Note: The `-v` is recommended and will enable verbose operations. `-h` will show all of the above options and some examples. 
 
 **Usage**
 
-Compile with `make`
+Compile with `make`. I've included several test cases for each grammar in tests/.
 
