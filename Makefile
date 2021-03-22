@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS  = -std=c++11 -Wall -Werror 
 
-$(shell mkdir build)
+$(shell mkdir build) 
 
 default: parser
 
