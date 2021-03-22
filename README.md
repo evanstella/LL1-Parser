@@ -1,8 +1,8 @@
-# LL(1) Parser in C++
+# LL(1) Parser Generator in C++
 ## Author: Evan Stella
 ## CSCI 3313: extra credit assignment
 
-**LL(1) Parser**
+**Parser Generator**
 
 This project implements the parse table generation (algorithms 3,4,5) discussed in HW6, as well as a simple lexer and parsing algorithm using a DPDA. The parser assumes it is given a grammar that is unambiguous and free of left recursions. The two following example grammars are provided in tests/example1.txt and test/example2.txt:
 
